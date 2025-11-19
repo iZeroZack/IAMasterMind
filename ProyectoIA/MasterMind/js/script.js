@@ -1,8 +1,18 @@
+/* ============================================
+   MASTER MIND – SCRIPT PRINCIPAL (Jugador + IA)
+   IA por Q-Learning (archivo IAscript.js)
+   ============================================ */
+
 let answerChoices = ["red", "blue", "green", "yellow", "purple", "orange"];
 
-//Implementar la ia
+// -----------------------------
+//        IA Q-LEARNING
+// -----------------------------
 let ai = new MastermindAI();
-let lastState = [0,0];
+
+// -----------------------------
+//     VARIABLES DEL JUEGO
+// -----------------------------
 let answer = [];
 let guess = [];
 let indexOfCorrect = [];
@@ -16,246 +26,235 @@ let selectedGuessPin;
 let col_id;
 let emptyPin;
 
-// Función para que juegue la IA
-function aiTurn() {
-    let action = ai.chooseAction(lastState); // la jugada
-    let feedback = gameFeedback(action);     // (correctos, semis)
-    let reward = computeReward(feedback);    // +10, +2, etc.
-
-    let nextState = feedback;
-
-    ai.updateQ(lastState, action, reward, nextState);
-
-    // mostrar en el tablero
-    changeRoundPinsAI(action);
-    changeResultPinsAI(feedback);
-
-    lastState = nextState;
-
-    if (feedback[0] === 4) {
-      feedback.text("La IA ha ganado!");
-      return true;
-    }
-    
-    round++;
-    return false;
-}
-
-$("#aiPlay").click(function() {
-    feedback.text("Activando IA...");
-    for (let i = 0; i < 10; i++) {
-        if (aiTurn()) break;
-    }
-});
-
-// // // sets random answer chosen by computer
+/* ============================================
+   FUNCIÓN PARA GENERAR COMBINACIÓN SECRETA
+   (Con repeticiones – Mastermind clásico)
+   ============================================ */
 function setAnswer() {
+    answer = [];
     for (let x = 0; x < 4; x++) {
         let colorIndex = Math.floor(Math.random() * 6);
         answer.push(colorIndex);
     }
 }
 
-// // //changes individual pin color with pin number, color index and selector
+// Inicializamos respuesta secreta al cargar
+setAnswer();
+
+/* ============================================
+   FUNCIONES AUXILIARES GRÁFICAS
+   ============================================ */
 function changePinColor(pinNum, colorInd, id) {
     let pin = document.querySelector(`${id} div:nth-child(${pinNum})`);
     switch (answerChoices[colorInd]) {
-        case "red":
-            pin.style.backgroundColor = "#ff002fff";
-            break;
-        case "orange":
-            pin.style.backgroundColor = "#ff6600ff";
-            break;
-        case "yellow":
-            pin.style.backgroundColor = "#fffb00ff";
-            break;
-        case "blue":
-            pin.style.backgroundColor = "#19d7f9ff";
-            break;
-        case "green":
-            pin.style.backgroundColor = "#3cf12cff";
-            break;
-        case "purple":
-            pin.style.backgroundColor = "#3d1696ff";
-            break;
+        case "red": pin.style.backgroundColor = "#ff002fff"; break;
+        case "orange": pin.style.backgroundColor = "#ff6600ff"; break;
+        case "yellow": pin.style.backgroundColor = "#fffb00ff"; break;
+        case "blue": pin.style.backgroundColor = "#19d7f9ff"; break;
+        case "green": pin.style.backgroundColor = "#3cf12cff"; break;
+        case "purple": pin.style.backgroundColor = "#3d1696ff"; break;
     }
 }
 
-setAnswer();
-
-
-// // // function to add clicked color to guess arr
 function colorClicked(id) {
     switch (id) {
-        case "red":
-            guess.push(0);
-            break;
-        case "blue":
-            guess.push(1);
-            break;
-        case "green":
-            guess.push(2);
-            break;
-        case "yellow":
-            guess.push(3);
-            break;
-        case "purple":
-            guess.push(4);
-            break;
-        case "orange":
-            guess.push(5);
-            break;
+        case "red": guess.push(0); break;
+        case "blue": guess.push(1); break;
+        case "green": guess.push(2); break;
+        case "yellow": guess.push(3); break;
+        case "purple": guess.push(4); break;
+        case "orange": guess.push(5); break;
     }
 }
 
-// // // function to check for win
-function checkWin() {
-    answer.forEach((el, i) => {
-        if (el == guess[i]) {
-            feedback.text("MISH");
-            win = true;
-        } else {
-            if (round == 10) {
-                feedback.text("F en el chat como dicen los jovenes");
-            } else {
-                feedback.text("Intenta de nuevo");
-                guess = [];
-            }
-            win = false;
-        }
-    })
-    return win;
-}
-
-
-// NEED FUNCTION TO CHANGE COLORS OF PINS ON BOARDS
-function changeRoundPins () {
-    guess.forEach((el, i) => {
-        let id = "#guess"+round;
-        let pinBgCheck = $("#b"+round);
-        if (pinBgCheck.css("background-color") == "rgb(207, 187, 165)") {
-            guess.forEach((el, i) => {
-                changePinColor(i+1, el, id);
-            })
-    }
-})
-}
-
-// check if guess length is correct
 function checkGuessLength() {
-    if (guess.length == answer.length) {
-        return true;
-    } else {
-        return false;
-    }
+    return guess.length == answer.length;
 }
 
-//  changes guess pins back to black
+// Limpia fila actual después de probar
 function changeBackToBlack() {
     for (let x = 1; x < 5; x++) {
         let pin = $(`#guess div:nth-child(${x})`);
-        pin.css("background-color","rgb(207, 187, 165)");
+        pin.css("background-color", "rgb(207, 187, 165)");
     }
 }
 
-// function to delete last item
 function removeLastGuess() {
     guess.pop();
     let x = guess.length;
-    let id = $(`#${x+1}`);
+    let id = $(`#${x + 1}`);
     id.css("background-color", "rgb(207, 187, 165)");
 }
+$("#clear").click(removeLastGuess);
 
-$("#clear").click(function() {
-    removeLastGuess();
-})
+/* ============================================
+   FEEDBACK (negros / blancos) – usado por IA y jugador
+   ============================================ */
+function gameFeedback(guessArr) {
+    let ans = [...answer];
+    let gs = [...guessArr];
 
-function check() {
-    if (checkGuessLength() == true) {
-        if (round < 11) {
-            getGuessResults();
-            changeRoundPins();
-            changeBackToBlack();
-            checkWin();
-            if (win == true) {
-                $("#check").off("click");
-                answer.forEach((el, i) => {
-                        changePinColor(i+1, el, "#answer");
-                    });
-                for (let i = 1; i < 5; i++) {
-                    let ans = $(`#answer div:nth-child(${i})`);
-                    ans.text("");
-                }
-            } else if (win == false && round == 10) {
-                answer.forEach((el, i) => {
-                    changePinColor(i+1, el, "#answer");
-                });
-                for (let i = 1; i < 5; i++) {
-                    let ans = $(`#answer div:nth-child(${i})`);
-                    ans.text("");
-                }
-            } else {
-                round++;
-            }
-        } 
-    } else {
-        feedback.text("Elige 4 colores");
+    let blacks = 0;
+    let whites = 0;
+
+    // Negros
+    for (let i = 0; i < 4; i++) {
+        if (gs[i] === ans[i]) {
+            blacks++;
+            gs[i] = ans[i] = null;
+        }
     }
+
+    // Blancos
+    for (let i = 0; i < 4; i++) {
+        if (gs[i] != null && ans.includes(gs[i])) {
+            whites++;
+            ans[ans.indexOf(gs[i])] = null;
+        }
+    }
+
+    return [blacks, whites];
 }
 
-// check button on click
-$("#check").click(function() {
-    check();
-})
+/* ============================================
+   FEEDBACK VISUAL PARA EL JUGADOR HUMANO
+   ============================================ */
+function changeResultPins() {
+    results.forEach((el, i) => {
+        let pin = $(`#ans${round} div:nth-child(${i + 1})`);
+        pin.css("background-color", el);
+    });
+}
 
-// function to assign result pins
+/* ============================================
+   RESULTADOS HUMANOS (negros/blancos)
+   ============================================ */
 function getGuessResults() {
-    // creates new arrays from answer and guess
     let ans = Array.from(answer);
     let gs = Array.from(guess);
 
-    // check for black pins
+    // Negros
     gs.forEach((el, i) => {
         if (el == ans[i]) {
             indexOfCorrect.push(i);
             results.push("black");
-        } 
-    })
+        }
+    });
 
-    // remove correct answers from arrays
+    // Eliminamos emparejamientos negros
     let removeItems = indexOfCorrect.reverse();
-
     removeItems.forEach(el => {
         ans.splice(el, 1);
         gs.splice(el, 1);
-    })
+    });
 
-    // sort guess arr without black answers so we start with biggest number
     gs.sort();
     ans.sort();
-    
-    // for each element of gs, if ans includes ele, push white to results, else increase wrong count;
+
     gs.forEach((el, i) => {
         if (ans.includes(el)) {
             results.push("white");
             let indOfEl = ans.indexOf(el);
             ans.splice(indOfEl, 1);
-         } 
-    })
-    
+        }
+    });
+
     changeResultPins();
     results = [];
     indexOfCorrect = [];
 }
 
-function changeResultPins () {
-    results.forEach((el, i) => {
-        let pin = $(`#ans${round} div:nth-child(${i+1})`);
-        pin.css("background-color", el);
-    })
+/* ============================================
+   CHECK DE VICTORIA PARA EL HUMANO
+   ============================================ */
+function checkWin() {
+    const [blacks, whites] = gameFeedback(guess);
+
+    if (blacks === 4) {
+        feedback.text("¡Ganaste!");
+
+        // Revelar la combinación secreta
+        answer.forEach((el, i) =>
+            changePinColor(i + 1, el, "#answer")
+        );
+        $("#answer .big_pin").text("");
+
+        return true;
+    }
+
+    if (round === 10) {
+        feedback.text("F en el chat");
+
+        // Revelar combinación secreta al perder
+        answer.forEach((el, i) =>
+            changePinColor(i + 1, el, "#answer")
+        );
+        $("#answer .big_pin").text("");
+
+        return false;
+    }
+
+    // No ganó, no perdió
+    feedback.text("Intenta de nuevo");
+    return false;
 }
 
-$("#reset").click(function() {
+/* ============================================
+   CAMBIAR PINS HUMANOS
+   ============================================ */
+function changeRoundPins() {
+    guess.forEach((el, i) => {
+        let id = "#guess" + round;
+        changePinColor(i + 1, el, id);
+    });
+}
+
+/* ============================================
+   BOTÓN "PROBAR" – JUGADOR HUMANO
+   ============================================ */
+function check() {
+    if (!checkGuessLength()) {
+        feedback.text("Elige 4 colores");
+        return;
+    }
+
+    getGuessResults();
+    changeRoundPins();
+    changeBackToBlack();
+
+    if (checkWin()) {
+        $("#check").off("click");
+    } else if (round < 10) {
+        round++;
+        guess = [];              // 🔹 importante: vaciar la jugada previa
+        selectedGuessPin = null; // (opcional) limpiar selección
+    }
+}
+
+$("#check").click(check);
+
+/* ============================================
+   RESETEAR TABLERO
+   ============================================ */
+function changeAllToBlack() {
+    for (let i = 1; i < 11; i++) {
+        for (let x = 1; x < 5; x++) {
+            $(`#guess${i} div:nth-child(${x})`)
+                .css("background-color", "rgb(207, 187, 165)");
+            $(`#ans${i} div:nth-child(${x})`)
+                .css("background-color", "rgb(162, 160, 160)");
+        }
+    }
+
+    for (let i = 1; i <= 4; i++) {
+        let ans = $(`#answer div:nth-child(${i})`);
+        ans.css("background-color", "rgb(207, 187, 165)");
+        ans.text("?");
+    }
+}
+
+$("#reset").click(function () {
+    // Reset de variables
     black = 0;
     white = 0;
     round = 1;
@@ -263,152 +262,153 @@ $("#reset").click(function() {
     guess = [];
     indexOfCorrect = [];
     results = [];
-    feedback.text("Juego Reiniciado");
     win = undefined;
     selectedGuessPin = undefined;
     col_id = undefined;
+
+    // Reset IA
+    ai.resetEpisode();
+
     setAnswer();
     changeAllToBlack();
-    $("#check").click(function() {
-        check();
-    })    
-})
 
-function changeAllToBlack() {
-    for (let i = 1; i < 11; i++) {
-        for (let x = 1; x < 5; x++) {
-            let pin = $(`#guess${i} div:nth-child(${x})`);
-            pin.css("background-color","rgb(207, 187, 165)");
-        }
-    }
-    for (let i = 1; i < 11; i++) {
-        for (let x = 1; x < 5; x++) {
-            let pin = $(`#ans${i} div:nth-child(${x})`);
-            pin.css("background-color","rgb(162, 160, 160)");
-        }
-    }
-    for (let i = 1; i < 5; i++) {
-        let pin = $(`#guess div:nth-child(${i})`);
-        pin.css("background-color","rgb(207, 187, 165)");
-        
-        let ans = $(`#answer div:nth-child(${i})`);
-        ans.css("background-color","rgb(207, 187, 165)");
-        ans.text("?");
-    }
+    feedback.text("Juego Reiniciado");
 
-
-}
-
-
-$("#instructions").click(function() {
-    swal({
-        content: "text",
-        title: "Instrucciones",
-        text: "Hey, las intrucciones son simples, son 10 intentos para adivinar la combinación secreta. Cuando el circulo de pistas del lado derecho se vuelva negro, un color de tu combinación está en la posición correspondiente. Cuando se vuelva blanco, un color de tu combinación está en la posición incorrecta. La idea de este proyecto es implementar un algoritmo que vaya aprendiendo de estas reglas y pista para que juegue de por si solo y aprendar a ganar",
-        buttons: {
-            confirm : {text:"Volver", className:"sweet-hover "}
-        },
-      });
-})
-
-
-// // to store selected guess pin on click
-$("body").click(function(event) {
-    selectedGuessPin = event.target.id;
-})
-
-
-$(".selector_pin").click(function(event) {
-    let pin = selectedGuessPin;
-    let clickedId = this.id
-    let pushToGuess = indexOfClickedColor(clickedId);
-   
-
-    if (selectedGuessPin == "1" || selectedGuessPin == "2" || selectedGuessPin == "3" || selectedGuessPin == "4") {
-        // need to get id of clicked color
-        $(`#${col_id}`).css("background-color");
-        changePinColor(pin, col_id, "#guess");
-        updateGuess(pushToGuess);
-    } 
-    // ADD ANOTHER ELSE IF TO CHECK FOR BLANKS
-    else {
-        if (guess.length == 0) {
-            colorClicked(clickedId);
-            let pinNum = guess.length;
-            let color = guess[guess.length - 1];
-            changePinColor(pinNum, color, "#guess");
-        } else {
-        findEmptyPin();
-        updateGuess(pushToGuess);
-        changePinColor(emptyPin, col_id, "#guess");
-        }
-    }
-    if (guess.length == 4) {
-        return emptyPin = null;
-    }
-
+    $("#check").off("click");
+    $("#check").click(check);
 });
 
-function findEmptyPin() {
-    for (let i = 3; i > -1; i--) {
-        if (guess[i] == null) {
-            emptyPin = i+1;
-        }
-    } return emptyPin;
+/* ============================================
+   SELECCIÓN DE COLORES PARA EL HUMANO
+   ============================================ */
+$("body").click(function (event) {
+    selectedGuessPin = event.target.id;
+});
+
+$(".selector_pin").click(function () {
+    let pin = selectedGuessPin;
+    let clickedId = this.id;
+    let pushToGuess = indexOfClickedColor(clickedId);
+
+    if (pin >= "1" && pin <= "4") {
+        let index = Number(pin) - 1;
+        guess[index] = pushToGuess;
+        changePinColor(pin, pushToGuess, "#guess");
+    } else {
+        guess.push(pushToGuess);
+        changePinColor(guess.length, pushToGuess, "#guess");
+    }
+});
+
+function mostrarJugadaIAEnPanel(action) {
+    for (let i = 0; i < 4; i++) {
+        changePinColor(i + 1, action[i], "#guess");
+    }
 }
-
-
 
 function indexOfClickedColor(clickedId) {
     switch (clickedId) {
-        case "red":
-            return col_id = 0;
-        case "blue":
-            return col_id = 1;
-        case "green":
-            return col_id = 2;
-        case "yellow":
-            return col_id = 3;
-        case "purple":
-            return col_id = 4;
-        case "orange":
-            return col_id = 5;
+        case "red": return 0;
+        case "blue": return 1;
+        case "green": return 2;
+        case "yellow": return 3;
+        case "purple": return 4;
+        case "orange": return 5;
     }
 }
 
-// UPDATE ARRAY
-function updateGuess(x) {
-    if (selectedGuessPin == "1" || selectedGuessPin == "2" || selectedGuessPin == "3" || selectedGuessPin == "4") {
-        let index = selectedGuessPin - 1;
-        if (guess.length == 0) {
-            if (selectedGuessPin == 4) {
-                guess.push(null, null, null, x);
-            } else if (selectedGuessPin == 3) {
-                guess.push(null, null, x, null);
-            } else if (selectedGuessPin == 2) {
-                guess.push(null, x, null, null);
-            } else {
-                guess.push(x);
-            }
-        } else if (guess.length == 1) {
-            if (selectedGuessPin == 2) {
-                guess.push(x);
-            } else if (selectedGuessPin == 3) {
-                guess.push(null, x);
-            } else if (selectedGuessPin == 4) {
-                guess.push(null, null, x);
-            }
-        } else if (guess.length == 2) {
-            if (selectedGuessPin == 3) {
-                guess.push(x);
-            } else if (selectedGuessPin == 4) {
-                guess.push(null, x);
-            }
-        } else {
-            guess.splice(index, 1, x);
-        }
-    } else {
-        let index = emptyPin - 1;
-        guess.splice(index, 1, x);
+/* ============================================
+   IA TURN — UNA SOLA JUGADA
+   ============================================ */
+function changeRoundPinsAI(action) {
+    let id = "#guess" + round;
+    for (let i = 0; i < 4; i++) {
+        changePinColor(i + 1, action[i], id);
     }
 }
+
+function changeResultPinsAI([blacks, whites]) {
+    let id = "#ans" + round;
+    let pos = 1;
+
+    for (let i = 0; i < blacks; i++) {
+        $(`${id} div:nth-child(${pos})`).css("background-color", "black");
+        pos++;
+    }
+    for (let i = 0; i < whites; i++) {
+        $(`${id} div:nth-child(${pos})`).css("background-color", "white");
+        pos++;
+    }
+}
+
+function aiTurn() {
+    let action = ai.chooseAction();
+
+    // 🔹 Mostrar jugada de IA en el panel inferior
+    mostrarJugadaIAEnPanel(action);
+
+    let fb = gameFeedback(action);
+    ai.learn(action, fb);
+
+    // 🔹 Poner esa jugada en la fila correspondiente del tablero
+    changeRoundPinsAI(action);
+    changeResultPinsAI(fb);
+
+    if (fb[0] === 4) {
+        feedback.text("¡La IA ha ganado!");
+        answer.forEach((el, i) => changePinColor(i + 1, el, "#answer"));
+        $("#answer .big_pin").text("");
+        return true;
+    }
+
+    round++;
+
+    // 🔹 Limpiar panel inferior para siguiente jugada
+    setTimeout(() => {
+        changeBackToBlack();
+    }, 400);
+
+    return false;
+}
+
+/* ============================================
+   BOTÓN IA – PASO A PASO
+   ============================================ */
+let aiRunning = false;
+
+$("#aiPlay").click(function () {
+    if (aiRunning) return;
+    aiRunning = true;
+
+    feedback.text("IA jugando...");
+
+    let moves = 0;
+    let maxMoves = 10;
+    let delay = 800;
+
+    function playStep() {
+        const finished = aiTurn();
+        moves++;
+
+        if (finished || moves >= maxMoves) {
+            aiRunning = false;
+            return;
+        }
+
+        setTimeout(playStep, delay);
+    }
+
+    playStep();
+});
+
+
+$("#instructions").click(function () {
+    swal({
+        content: "text",
+        title: "Instrucciones",
+        text: "Este Proyecto esta pensado para que un algoritmo de Machine Learning aprenda a jugar al MasterMind. Las reglas son simples, adivinar una combinación secreta de 4 colores entre 6 posibles, en un máximo de 10 intentos. Cuando las pistas se iluminan de negro, significa que un color está en la posición correcta, y cuando se iluminan de blanco, significa que un color está en la combinación pero en la posición incorrecta.",
+        buttons: {
+            confirm: { text: "Volver", className: "sweet-hover" }
+        }
+    });
+});
