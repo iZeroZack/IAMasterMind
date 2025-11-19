@@ -1,5 +1,8 @@
 let answerChoices = ["red", "blue", "green", "yellow", "purple", "orange"];
 
+//Implementar la ia
+let ai = new MastermindAI();
+let lastState = [0,0];
 let answer = [];
 let guess = [];
 let indexOfCorrect = [];
@@ -12,6 +15,38 @@ let win;
 let selectedGuessPin;
 let col_id;
 let emptyPin;
+
+// Función para que juegue la IA
+function aiTurn() {
+    let action = ai.chooseAction(lastState); // la jugada
+    let feedback = gameFeedback(action);     // (correctos, semis)
+    let reward = computeReward(feedback);    // +10, +2, etc.
+
+    let nextState = feedback;
+
+    ai.updateQ(lastState, action, reward, nextState);
+
+    // mostrar en el tablero
+    changeRoundPinsAI(action);
+    changeResultPinsAI(feedback);
+
+    lastState = nextState;
+
+    if (feedback[0] === 4) {
+      feedback.text("La IA ha ganado!");
+      return true;
+    }
+    
+    round++;
+    return false;
+}
+
+$("#aiPlay").click(function() {
+    feedback.text("Activando IA...");
+    for (let i = 0; i < 10; i++) {
+        if (aiTurn()) break;
+    }
+});
 
 // // // sets random answer chosen by computer
 function setAnswer() {
@@ -77,13 +112,13 @@ function colorClicked(id) {
 function checkWin() {
     answer.forEach((el, i) => {
         if (el == guess[i]) {
-            feedback.text("Winner winner chicken dinner");
+            feedback.text("MISH");
             win = true;
         } else {
             if (round == 10) {
-                feedback.text("F in the chat");
+                feedback.text("F en el chat como dicen los jovenes");
             } else {
-                feedback.text("Try again");
+                feedback.text("Intenta de nuevo");
                 guess = [];
             }
             win = false;
@@ -164,7 +199,7 @@ function check() {
             }
         } 
     } else {
-        feedback.text("Choose more pins");
+        feedback.text("Elige 4 colores");
     }
 }
 
@@ -221,14 +256,14 @@ function changeResultPins () {
 }
 
 $("#reset").click(function() {
-    answer = [];
-    guess = [];
-    indexOfCorrect = [];
     black = 0;
     white = 0;
     round = 1;
+    answer = [];
+    guess = [];
+    indexOfCorrect = [];
     results = [];
-    feedback.text("New game loaded");
+    feedback.text("Juego Reiniciado");
     win = undefined;
     selectedGuessPin = undefined;
     col_id = undefined;
