@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mastermind</title>
+    <link rel="stylesheet" href="css/main.css">
+    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+</head>
+<body> 
+    <!-- GAME BOARD -->
+    <main>
+        <div class="main_left">
+            <div class="board">
+                <!-- left pins -->
+                <div class="left">
+                    <div class="pin_container" id="answer">
+                        <div class="big_pin">?</div>
+                        <div class="big_pin">?</div>
+                        <div class="big_pin">?</div>
+                        <div class="big_pin">?</div>
+                    </div>
+                    <div class="pin_container" id="guess10">
+                        <div class="big_pin" id="b10"></div>
+                        <div class="big_pin"></div>
+                        <div class="big_pin"></div>
+                        <div class="big_pin"></div>
+                    </div>
+                    <div class="pin_container" id="guess9">
+                        <div class="big_pin" id="b9"></div>
+                        <div class="big_pin"></div>
+                        <div class="big_pin"></div>
+                        <div class="big_pin"></div>
+                    </div>
+                    <div class="pin_container" id="guess8">
+                        <div class="big_pin" id="b8"></div>
+                        <div class="big_pin"></div>
+                        <div class="big_pin"></div>
+                        <div class="big_pin"></div>
+                    </div>
+                    <div class="pin_container" id="guess7">
+                        <div class="big_pin" id="b7"></div>
+                        <div class="big_pin"></div>
+                        <div class="big_pin"></div>
+                        <div class="big_pin"></div>
+                    </div>
+                    <div class="pin_container" id="guess6">
+                        <div class="big_pin" id="b6"></div>
+                        <div class="big_pin"></div>
+                        <div class="big_pin"></div>
+                        <div class="big_pin"></div>
+                    </div>
+                    <div class="pin_container" id="guess5">
+                        <div class="big_pin" id="b5"></div>
+                        <div class="big_pin"></div>
+                        <div class="big_pin"></div>
+                        <div class="big_pin"></div>
+                    </div>
+                    <div class="pin_container" id="guess4">
+                        <div class="big_pin" id="b4"></div>
+                        <div class="big_pin"></div>
+                        <div class="big_pin"></div>
+                        <div class="big_pin"></div>
+                    </div>
+                    <div class="pin_container" id="guess3">
+                        <div class="big_pin" id="b3"></div>
+                        <div class="big_pin"></div>
+                        <div class="big_pin"></div>
+                        <div class="big_pin"></div>
+                    </div>
+                    <div class="pin_container" id="guess2">
+                        <div class="big_pin" id="b2"></div>
+                        <div class="big_pin"></div>
+                        <div class="big_pin"></div>
+                        <div class="big_pin"></div>
+                    </div>
+                    <div class="pin_container" id="guess1">
+                        <div class="big_pin" id="b1"></div>
+                        <div class="big_pin"></div>
+                        <div class="big_pin"></div>
+                        <div class="big_pin"></div>
+                    </div>
+                    <div class="pin_container" id="guess">
+                        <div class="guess_pin" id="1"></div>
+                        <div class="guess_pin" id="2"></div>
+                        <div class="guess_pin" id="3"></div>
+                        <div class="guess_pin" id="4"></div>
+                    </div>
+                </div>
+
+                <!-- right pins -->
+                <div class="right">
+                    <div class="ans_container" id="none"></div>
+                    <div class="ans_container" id="ans10">
+                        <div class="small_pin"></div>
+                        <div class="small_pin"></div>
+                        <div class="small_pin"></div>
+                        <div class="small_pin"></div>
+                    </div>
+                    <div class="ans_container" id="ans9">
+                        <div class="small_pin"></div>
+                        <div class="small_pin"></div>
+                        <div class="small_pin"></div>
+                        <div class="small_pin"></div>
+                    </div>
+                    <div class="ans_container" id="ans8">
+                        <div class="small_pin"></div>
+                        <div class="small_pin"></div>
+                        <div class="small_pin"></div>
+                        <div class="small_pin"></div>
+                    </div>
+                    <div class="ans_container" id="ans7">
+                        <div class="small_pin"></div>
+                        <div class="small_pin"></div>
+                        <div class="small_pin"></div>
+                        <div class="small_pin"></div>
+                    </div>
+                    <div class="ans_container" id="ans6">
+                        <div class="small_pin"></div>
+                        <div class="small_pin"></div>
+                        <div class="small_pin"></div>
+                        <div class="small_pin"></div>
+                    </div>
+                    <div class="ans_container" id="ans5">
+                        <div class="small_pin"></div>
+                        <div class="small_pin"></div>
+                        <div class="small_pin"></div>
+                        <div class="small_pin"></div>
+                    </div>
+                    <div class="ans_container" id="ans4">
+                        <div class="small_pin"></div>
+                        <div class="small_pin"></div>
+                        <div class="small_pin"></div>
+                        <div class="small_pin"></div>
+                    </div>
+                    <div class="ans_container" id="ans3">
+                        <div class="small_pin"></div>
+                        <div class="small_pin"></div>
+                        <div class="small_pin"></div>
+                        <div class="small_pin"></div>
+                    </div>
+                    <div class="ans_container" id="ans2">
+                        <div class="small_pin"></div>
+                        <div class="small_pin"></div>
+                        <div class="small_pin"></div>
+                        <div class="small_pin"></div>
+                    </div>
+                    <div class="ans_container" id="ans1">
+                        <div class="small_pin"></div>
+                        <div class="small_pin"></div>
+                        <div class="small_pin"></div>
+                        <div class="small_pin"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="main_right">
+            <div class="gameplays">
+                <div class="button" id="reset">Reiniciar Juego</div>
+            </div>
+            <div class="miniboard">
+                <div class="ans_containers" id="color_select">
+                    <div class="selector_pin" id="red"></div>
+                    <div class="selector_pin" id="blue"></div>
+                    <div class="selector_pin" id="green"></div>
+                    <div class="selector_pin" id="yellow"></div>
+                    <div class="selector_pin" id="purple"></div>
+                    <div class="selector_pin" id="orange"></div>
+                </div>
+            </div>
+            <div class="gameplay">
+                <div class="buttons" id="instructions">Instrucciones</div>
+            </div>
+            <div class="miniminiboard"><div class="feedback_container"></div></div>
+            <div class="gameplay">
+                <div class="button" id="check">Probar</div>
+                <div class="button" id="clear">Borrar</div>
+            </div>
+        </div>
+    </main>
+    
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="js/script.js"></script>
+</body>
+</html>
