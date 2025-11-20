@@ -5,7 +5,7 @@
 body {
   font-family: "VT323", monospace;
   text-align: center;
-  background-color: #77e2ff;
+  background-color: #a5e4f6;
 }
 
 header {
@@ -67,7 +67,7 @@ h4 {
 
 .feedback_container {
   /*border: 1px solid fuchsia;*/
-  color: red;
+  color: rgb(249, 38, 38);
   height: 90px;
   width: 250px;
   font-size: 40px;
@@ -83,24 +83,24 @@ h4 {
   grid-template-columns: 6fr 4fr;
   width: 500px;
   margin-right: 100px;
-  background-color: #eeb871;
+  background-color: #e8b776;
   color: rgb(114, 114, 114);
 }
 
 .miniboard{
-  border: 5px solid #a19e9a;
+  border: 5px solid #3c3c3c;
   border-radius: 20px;
   display: grid;
   width: 400px;
   height: 200px;
   justify-content: center;
   align-items: center;
-  background-color: #443e3e;
+  background-color: #1f1d1d;
   color: rgb(114, 114, 114);
 }
 
 .miniminiboard{
-  border: 5px solid #000000;
+  border: 5px solid #3c3c3c;
   border-radius: 10px;
   display: grid;
   width: 300px;
@@ -135,11 +135,11 @@ h4 {
 #guess4,
 #guess3,
 #guess2 {
-  border-bottom: 2px solid #000000;
+  border-bottom: 2px solid #8d5400;
 }
 
 #guess {
-  border-top: 3px solid #8d5400;
+  border-top: 2px solid #8d5400;
   padding-top: 14px;
   padding-bottom: 8px;
   margin-top: 2px;
@@ -147,18 +147,18 @@ h4 {
 
 .big_pin,
 .guess_pin {
-  border: 3px solid rgb(89, 89, 89);
+  border: 3px solid rgb(53, 51, 51);
   width: 30px;
   height: 30px;
   border-radius: 50%;
   margin: 0 auto;
   padding: 0;
-  background-color: rgb(207, 187, 165);
+  background-color: rgb(217, 180, 139);
   line-height: 110%;
 }
 
 #answer {
-  border-bottom: 3px solid #8d5400;
+  border-bottom: 2px solid #8d5400;
   margin-top: 10px;
   padding-bottom: 10px;
   text-align: center;
@@ -206,18 +206,18 @@ h4 {
 #ans3,
 #ans2,
 #none {
-  border-bottom: 2px solid #000000;
+  border-bottom: 2px solid #8d5400;
 }
 
 .small_pin {
-  border: 3px solid rgb(74, 69, 69);
+  border: 3px solid rgb(37, 36, 36);
   width: 30px;
   height: 30px;
   border-radius: 50%;
   margin: 0 auto;
   line-height: 0;
   font-size: 15px;
-  background-color: rgb(162, 160, 160);
+  background-color: rgb(206, 203, 203);
 }
 
 #color_select {
