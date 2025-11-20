@@ -157,6 +157,11 @@ h4 {
   line-height: 110%;
 }
 
+.disabled_btn {
+    opacity: 0.5;
+    cursor: not-allowed !important;
+}
+
 #answer {
   border-bottom: 2px solid #8d5400;
   margin-top: 10px;
