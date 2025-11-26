@@ -1,3 +1,11 @@
+/* ============================================================
+   IA DE MASTERMIND – Q-LEARNING PURO
+   Mejoras ML:
+   ✔ Memoria por episodio (evitar repetir jugadas)
+   ✔ Epsilon decreciente
+   ✔ Penalización a jugadas sin información
+   ============================================================ */
+
 class MastermindAI {
     constructor(alpha = 0.3, gamma = 0.9, epsilon = 0.5, epsilonDecay = 0.995, minEpsilon = 0.05) {
 
