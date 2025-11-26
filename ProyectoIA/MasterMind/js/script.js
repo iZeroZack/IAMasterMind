@@ -60,8 +60,8 @@ function changePinColor(pinNum, colorInd, id) {
     let pin = document.querySelector(`${id} div:nth-child(${pinNum})`);
     if (!pin) return;
     switch (answerChoices[colorInd]) {
-        case "red": pin.style.backgroundColor = "#ff002fff"; break;
-        case "orange": pin.style.backgroundColor = "#ff6600ff"; break;
+        case "red": pin.style.backgroundColor = "rgba(255, 0, 0, 1)"; break;
+        case "orange": pin.style.backgroundColor = "rgba(255, 165, 0,1)"; break;
         case "yellow": pin.style.backgroundColor = "#fffb00ff"; break;
         case "blue": pin.style.backgroundColor = "#19d7f9ff"; break;
         case "green": pin.style.backgroundColor = "#3cf12cff"; break;
@@ -421,7 +421,7 @@ $("#instructions").click(function () {
     swal({
         content: "text",
         title: "Instrucciones",
-        text: "Este Proyecto esta pensado para que un algoritmo de Machine Learning aprenda a jugar al MasterMind. Las reglas son simples, adivinar una combinación secreta de 4 colores entre 6 posibles, en un máximo de 10 intentos. Cuando las pistas se iluminan de negro, significa que un color está en la posición correcta, y cuando se iluminan de blanco, significa que un color está en la combinación pero en la posición incorrecta.",
+        text: "Este Proyecto implementa un algoritmo de Machine Learning que aprende a jugar al MasterMind. Las reglas son simples, adivinar una combinación secreta de 4 colores entre 6 posibles, en un máximo de 10 intentos. Cuando las pistas se iluminan de negro, significa que un color está en la posición correcta, y cuando se iluminan de blanco, significa que un color está en la posición incorrecta.",
         buttons: {
             confirm: { text: "Volver", className: "sweet-hover" }
         }
