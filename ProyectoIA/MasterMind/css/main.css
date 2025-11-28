@@ -1,3 +1,48 @@
+/* ===========================
+   PANEL DE INICIO
+   =========================== */
+
+#startPanel {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 99;
+}
+
+#startBox {
+    background: #252525;
+    border: 5px solid #888;
+    border-radius: 15px;
+    padding: 40px;
+    text-align: center;
+    width: 350px;
+}
+
+#startBox h2 {
+    font-size: 32px;
+    color: #f8f8f8;
+    margin-bottom: 25px;
+}
+
+.startBtn {
+    width: 240px;
+    padding: 15px;
+    margin: 10px;
+    font-size: 24px;
+    background: #444;
+    color: white;
+    border: 3px solid #999;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+.startBtn:hover {
+    background: #666;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -42,6 +87,13 @@ h4 {
 .mish{
   /*border: 5px solid rgb(0, 0, 0);*/
   display: flex;
+}
+
+.damn{
+  /*border: 5px solid rgb(255, 0, 0);*/
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .main_right {
@@ -91,14 +143,25 @@ h4 {
 
 .console {
   border: 8px solid #373636;
-  border-left: 0px solid #373636;
-  border-radius: 0px 10px 10px 0px;
-  display: flex;
-  height: 580px;
-  width: 280px;
-  margin-top: 50px;
+  display: block;                 /* NO flex */
+  overflow-y: auto;               /* Scroll vertical */
+  overflow-x: hidden !important;  /* Sin scroll horizontal */
+  white-space: normal !important; /* Permite wrap */
+  word-break: break-word !important; /* Corta palabras largas */
+
   background-color: #000000;
-  color: rgb(114, 114, 114);
+
+  font-family: "Courier New", monospace;
+  color: #ffffff;
+  font-size: 18px;
+  line-height: 1.2em;
+}
+
+.console .log {
+  white-space: normal !important;
+  word-break: break-word !important;
+  max-width: 100%;
+  display: block; /* ← importante */
 }
 
 .miniboard{
@@ -168,7 +231,7 @@ h4 {
   border-radius: 50%;
   margin: 0 auto;
   padding: 0;
-  background-color: rgb(217, 180, 139);
+  background-color: rgb(207,187,165);
   line-height: 110%;
 }
 
@@ -237,7 +300,7 @@ h4 {
   margin: 0 auto;
   line-height: 0;
   font-size: 15px;
-  background-color: rgb(138, 138, 138);
+  background-color: rgb(162,160,160);
 }
 
 #color_select {
@@ -246,15 +309,20 @@ h4 {
 }
 
 .selector_pin {
-  border: 2px solid rgb(0, 0, 0);
-  width: 70px;
-  height: 70px;
-  border-radius: 50%;
-  margin: 0 auto;
-  font-size: 20px;
-  line-height: 20%;
-  background-color: rgb(184, 161, 134);
+    border: 2px solid rgb(0, 0, 0);
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    margin: 0 auto;
+    font-size: 32px;
+    font-weight: bold;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #000000;
+    background-color: rgb(184, 161, 134);
 }
+
 #red {
   background-color: rgb(255, 0, 0);
 }
@@ -325,4 +393,26 @@ h4 {
 
 .sweet-hover:not([disabled]):hover {
   background-color: #fdce69;
+}
+
+#iaStatus {
+    display: none;
+    font-family: "sans-serif", monospace;
+    color: #ffffff;
+    background: #000000;
+    padding: 15px;
+    border: 5px solid #373636;
+    border-radius: 10px;
+    width: 340px;
+    line-height: 1.4em;
+}
+
+#iaStatus .logItem {
+    margin-bottom: 8px;
+}
+
+#menu {
+    background-color: rgb(123, 119, 119);
+    color: white;
+    cursor: pointer;
 }

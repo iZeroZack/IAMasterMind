@@ -8,7 +8,15 @@
     <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
 </head>
-<body> 
+<body>
+    <div id="startPanel">
+        <div id="startBox">
+            <h2>Elige un modo de juego</h2>
+            <button id="btnModePlayer" class="startBtn">Modo Jugador</button>
+            <button id="btnModeAI" class="startBtn">Modo IA</button>
+            <button id="btnModeAIStatic" class="startBtn">Modo IA estática</button>
+        </div>
+    </div>
     <!-- GAME BOARD -->
     <main>
         <div class="main_left">
@@ -166,22 +174,33 @@
                     </div>
                 <div class="miniboard">
                     <div class="ans_containers" id="color_select">
-                        <div class="selector_pin" id="red"></div>
-                        <div class="selector_pin" id="blue"></div>
-                        <div class="selector_pin" id="green"></div>
-                        <div class="selector_pin" id="yellow"></div>
-                        <div class="selector_pin" id="purple"></div>
-                        <div class="selector_pin" id="orange"></div>
+                        <div class="selector_pin" id="red">1</div>
+                        <div class="selector_pin" id="blue">2</div>
+                        <div class="selector_pin" id="green">3</div>
+                        <div class="selector_pin" id="yellow">4</div>
+                        <div class="selector_pin" id="purple">5</div>
+                        <div class="selector_pin" id="orange">6</div>
                     </div>
                 </div>
-                <div class="gameplays">
-                    <div class="buttons" id="instructions">Instrucciones</div></div>
+                <div class="gameplays" id="playerControls">
+                    <div class="buttons" id="menu">Menú</div>
+                    <div class="buttons" id="instructions">Instrucciones</div>
+                </div>
                 <div class="gameplay">
                     <div class="button" id="check">Probar</div>
                     <div class="button" id="clear">Borrar</div>
                 </div>
             </div>
-            <div class="console"></div>
+            <div class="damn"><div class="console" id="iaStatus">
+                <div class="logItem"><strong>Episodio:</strong> <span id="logEpisode">0</span></div>
+                <div class="logItem"><strong>Jugada:</strong> <span id="logMove">0</span></div>
+                <div class="logItem"><strong>Acción:</strong> <span id="logAction">-</span></div>
+                <div class="logItem"><strong>Modo acción:</strong> <span id="logPolicy">-</span></div>
+                <div class="logItem"><strong>Feedback:</strong> <span id="logFeedback">-</span></div>
+                <div class="logItem"><strong>Reward:</strong> <span id="logReward">0</span></div>
+                <div class="logItem"><strong>Epsilon:</strong> <span id="logEpsilon">0</span></div>
+            </div>
+        </div>
         </div>
     </main>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>

@@ -1,17 +1,18 @@
 /* ============================================================
-   IA DE MASTERMIND – Q-LEARNING PURO
+   IA DE MASTERMIND – Q-LEARNING
    Mejoras ML:
    ✔ Memoria por episodio (evitar repetir jugadas)
    ✔ Epsilon decreciente
-   ✔ Penalización a jugadas sin información
+   ✔ Penalización a jugadas sin información (desde script.js)
+   ✔ Logging detallado al panel .console
    ============================================================ */
 
 class MastermindAI {
     constructor(alpha = 0.3, gamma = 0.9, epsilon = 0.5, epsilonDecay = 0.995, minEpsilon = 0.05) {
-
+        this.lastPolicy = "-"; // solo para mostrar en consola
         this.alpha = alpha;               // tasa de aprendizaje
         this.gamma = gamma;               // descuento futuro
-        this.epsilon = epsilon;           // exploración inicial
+        this.epsilon = epsilon;           // probabilidad de explorar
         this.epsilonDecay = epsilonDecay; // decrecimiento por episodio
         this.minEpsilon = minEpsilon;
 
@@ -21,12 +22,12 @@ class MastermindAI {
         this.actions = this.generateAllActions();
         this.Q = {};  // Tabla Q
 
-        // Memoria de jugadas usadas durante el episodio actual
+        // Acciones ya usadas durante el episodio actual
         this.usedActions = new Set();
     }
 
     /* -----------------------------------------
-       Genera todas las combinaciones posibles
+       Generar todas las combinaciones posibles
        ----------------------------------------- */
     generateAllActions() {
         let acts = [];
@@ -39,110 +40,131 @@ class MastermindAI {
     }
 
     /* -----------------------------------------
-       KEY para la tabla Q
+       KEY referencia Q-table
        ----------------------------------------- */
     key(state, action) {
         return JSON.stringify({ state, action });
     }
 
     /* -----------------------------------------
-       Obtener Q(s, a)
+       Obtener y guardar Q
        ----------------------------------------- */
     getQ(state, action) {
-        const k = this.key(state, action);
-        return this.Q[k] ?? 0;
+        return this.Q[this.key(state, action)] ?? 0;
     }
 
-    /* -----------------------------------------
-       Asignar Q(s, a)
-       ----------------------------------------- */
     setQ(state, action, value) {
-        const k = this.key(state, action);
-        this.Q[k] = value;
+        this.Q[this.key(state, action)] = value;
     }
 
     /* -----------------------------------------
-       Elegir acción con Política ε-greedy
+       Elegir acción con ε-greedy inteligente
        ----------------------------------------- */
     chooseAction(state) {
+    // Filtrar acciones no usadas en este episodio
+    let availableActions = this.actions.filter(a =>
+        !this.usedActions.has(JSON.stringify(a))
+    );
 
-        // ------------------------------------
-        // A) Evitar acciones repetidas dentro del episodio
-        // ------------------------------------
-        let availableActions = this.actions.filter(a =>
-            !this.usedActions.has(JSON.stringify(a))
-        );
-
-        // Si usamos todas las acciones (casi imposible), reiniciar memoria
-        if (availableActions.length === 0) {
-            this.usedActions.clear();
-            availableActions = this.actions.slice();
-        }
-
-        // ------------------------------------
-        // EXPLORACIÓN (ε)
-        // ------------------------------------
-        if (Math.random() < this.epsilon) {
-            const idx = Math.floor(Math.random() * availableActions.length);
-            const action = availableActions[idx];
-
-            // agregar a memoria del episodio
-            this.usedActions.add(JSON.stringify(action));
-            return action;
-        }
-
-        // ------------------------------------
-        // EXPLOTACIÓN (max Q)
-        // ------------------------------------
-        let bestQ = -Infinity;
-        let bestAct = availableActions[0];
-
-        for (let a of availableActions) {
-            const q = this.getQ(state, a);
-            if (q > bestQ) {
-                bestQ = q;
-                bestAct = a;
-            }
-        }
-
-        this.usedActions.add(JSON.stringify(bestAct));
-        return bestAct;
+    if (availableActions.length === 0) {
+        this.usedActions.clear();
+        availableActions = this.actions.slice();
     }
 
+    // EXPLORACIÓN
+    if (Math.random() < this.epsilon) {
+        const idx = Math.floor(Math.random() * availableActions.length);
+        const action = availableActions[idx];
+        this.usedActions.add(JSON.stringify(action));
+        this.lastPolicy = "Exploración";
+        return action;
+    }
+
+    // EXPLOTACIÓN
+    let bestQ = -Infinity;
+    let bestAction = availableActions[0];
+
+    for (let act of availableActions) {
+        const q = this.getQ(state, act);
+        if (q > bestQ) {
+            bestQ = q;
+            bestAction = act;
+        }
+    }
+
+    this.usedActions.add(JSON.stringify(bestAction));
+    this.lastPolicy = "Explotación";
+    return bestAction;
+}
+
     /* -----------------------------------------
-       Actualizar Q-Learning
+       Actualizar tabla Q
        ----------------------------------------- */
     updateQ(state, action, reward, nextState) {
 
         const oldQ = this.getQ(state, action);
 
         let maxQNext = 0;
-
-        // max Q en siguiente estado
         for (let a of this.actions) {
             const q = this.getQ(nextState, a);
             if (q > maxQNext) maxQNext = q;
         }
 
-        // Fórmula Q-learning
         const newQ =
             oldQ +
             this.alpha *
             (reward + this.gamma * maxQNext - oldQ);
 
         this.setQ(state, action, newQ);
+
+        logToConsole(
+            `    Q-update: old=${oldQ.toFixed(2)} → new=${newQ.toFixed(2)} | reward=${reward}`
+        );
     }
 
     /* -----------------------------------------
-       Fin de un episodio → Reducir epsilon
+       Cierre de episodio
        ----------------------------------------- */
     endEpisode() {
-        this.epsilon = Math.max(
-            this.minEpsilon,
-            this.epsilon * this.epsilonDecay
-        );
+        // Bajar epsilon --- cada vez explora menos
+        this.epsilon = Math.max(this.minEpsilon, this.epsilon * this.epsilonDecay);
 
-        // Vaciar memoria del episodio
+        // limpiar memoria de jugadas del episodio
         this.usedActions.clear();
+
+        logToConsole(`--- Fin del episodio | nuevo ε=${this.epsilon.toFixed(3)} ---`);
     }
 }
+
+AI.prototype.chooseActionVerbose = function(state) {
+    let availableActions = this.actions.filter(a =>
+        !this.usedActions.has(JSON.stringify(a))
+    );
+
+    let policy = "";
+
+    // Exploración
+    if (Math.random() < this.epsilon) {
+        let idx = Math.floor(Math.random() * availableActions.length);
+        let action = availableActions[idx];
+        policy = "Exploración";
+        this.usedActions.add(JSON.stringify(action));
+        return { action, policy };
+    }
+
+    // Explotación
+    let bestQ = -Infinity;
+    let bestAction = availableActions[0];
+
+    for (let act of availableActions) {
+        let q = this.getQ(state, act);
+        if (q > bestQ) {
+            bestQ = q;
+            bestAction = act;
+        }
+    }
+
+    policy = "Explotación";
+    this.usedActions.add(JSON.stringify(bestAction));
+    return { action: bestAction, policy };
+};

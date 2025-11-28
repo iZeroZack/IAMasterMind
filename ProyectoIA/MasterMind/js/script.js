@@ -1,19 +1,15 @@
 /* ============================================
    MASTER MIND – SCRIPT PRINCIPAL (Jugador + IA)
-   IA por Q-Learning puro (MastermindAI en IAscript.js)
+   IA por Q-Learning puro
    ============================================ */
 
 let answerChoices = ["red", "blue", "green", "yellow", "purple", "orange"];
+let ai = new MastermindAI();   // IA definida en IAscript.js
+let lastState = [0, 0];
 
-// -----------------------------
-//            IA
-// -----------------------------
-let ai = new MastermindAI();   // definida en IAscript.js
-let lastState = [0, 0];        // estado inicial (feedback previo)
-
-// -----------------------------
-//     VARIABLES DEL JUEGO
-// -----------------------------
+/* ============================================
+   VARIABLES DE JUEGO
+   ============================================ */
 let answer = [];
 let guess = [];
 let indexOfCorrect = [];
@@ -24,11 +20,20 @@ let win = false;
 let feedback = $(".feedback_container");
 let selectedGuessPin = null;
 
-// ============================================
-// BLOQUEAR / DESBLOQUEAR CONTROLES DEL JUGADOR
-// ============================================
+/* ============================================
+   CONSOLA PARA LOGS (panel derecho)
+   ============================================ */
+function logToConsole(msg) {
+    // La dejamos vacía para no mezclar con la consola nueva
+    // Si quieres, podrías mandar esto a otro div oculto.
+}
+
+/* ============================================
+   BLOQUEAR / DESBLOQUEAR CONTROLES HUMANO
+   ============================================ */
 function bloquearJugador() {
     $(".selector_pin").css("pointer-events", "none");
+    $("#menu").addClass("disabled_btn").css("pointer-events", "none");
     $("#check").prop("disabled", true).addClass("disabled_btn");
     $("#clear").prop("disabled", true).addClass("disabled_btn");
     $("#reset").prop("disabled", true).addClass("disabled_btn");
@@ -36,20 +41,19 @@ function bloquearJugador() {
 
 function desbloquearJugador() {
     $(".selector_pin").css("pointer-events", "auto");
+    $("#menu").removeClass("disabled_btn").css("pointer-events", "auto");
     $("#check").prop("disabled", false).removeClass("disabled_btn");
     $("#clear").prop("disabled", false).removeClass("disabled_btn");
     $("#reset").prop("disabled", false).removeClass("disabled_btn");
 }
 
 /* ============================================
-   Generar combinación secreta (con repeticiones)
+   GENERAR RESPUESTA SECRETA
    ============================================ */
 function setAnswer() {
     answer = [];
-    for (let x = 0; x < 4; x++) {
-        let colorIndex = Math.floor(Math.random() * 6);
-        answer.push(colorIndex);
-    }
+    for (let i = 0; i < 4; i++)
+        answer.push(Math.floor(Math.random() * 6));
 }
 setAnswer();
 
@@ -59,67 +63,61 @@ setAnswer();
 function changePinColor(pinNum, colorInd, id) {
     let pin = document.querySelector(`${id} div:nth-child(${pinNum})`);
     if (!pin) return;
-    switch (answerChoices[colorInd]) {
-        case "red": pin.style.backgroundColor = "rgba(255, 0, 0, 1)"; break;
-        case "orange": pin.style.backgroundColor = "rgba(255, 165, 0,1)"; break;
-        case "yellow": pin.style.backgroundColor = "#fffb00ff"; break;
-        case "blue": pin.style.backgroundColor = "#19d7f9ff"; break;
-        case "green": pin.style.backgroundColor = "#3cf12cff"; break;
-        case "purple": pin.style.backgroundColor = "#3d1696ff"; break;
-    }
+
+    const colors = {
+        0: "#ff002fff", 1: "#19d7f9ff", 2: "#3cf12cff",
+        3: "#fffb00ff", 4: "#3d1696ff", 5: "#ff6600ff"
+    };
+
+    pin.style.backgroundColor = colors[colorInd];
 }
 
 /* ============================================
-   SELECCIÓN DE PINES POR EL JUGADOR
+   SELECCIÓN DEL JUGADOR
    ============================================ */
-$("body").click(function (event) {
-    selectedGuessPin = event.target.id;
-});
+$("body").click(e => selectedGuessPin = e.target.id);
 
 $(".selector_pin").click(function () {
     let col = this.id;
-    let color = ({
-        red: 0, blue: 1, green: 2, yellow: 3, purple: 4, orange: 5
-    })[col];
+    let colorMap = { red:0, blue:1, green:2, yellow:3, purple:4, orange:5 };
+    let c = colorMap[col];
 
     if (selectedGuessPin >= 1 && selectedGuessPin <= 4) {
         let pos = Number(selectedGuessPin) - 1;
-        guess[pos] = color;
-        changePinColor(selectedGuessPin, color, "#guess");
+        guess[pos] = c;
+        changePinColor(selectedGuessPin, c, "#guess");
     } else {
         if (guess.length >= 4) return;
-        guess.push(color);
-        changePinColor(guess.length, color, "#guess");
+        guess.push(c);
+        changePinColor(guess.length, c, "#guess");
     }
 });
 
 /* ============================================
-   BORRAR ÚLTIMO COLOR DEL JUGADOR
+   BORRAR PIN
    ============================================ */
-$("#clear").click(function () {
-    if (guess.length === 0) return;
+$("#clear").click(() => {
+    if (guess.length < 1) return;
     guess.pop();
     changeBackToBlack();
     guess.forEach((c, i) => changePinColor(i + 1, c, "#guess"));
 });
 
 /* ============================================
-   FEEDBACK (negros, blancos)
+   FEEDBACK NEGROS / BLANCOS
    ============================================ */
-function gameFeedback(guessArr) {
+function gameFeedback(gs) {
     let ans = [...answer];
-    let gs = [...guessArr];
+    gs = [...gs];
 
     let blacks = 0, whites = 0;
 
-    // Negros
     for (let i = 0; i < 4; i++) {
         if (gs[i] === ans[i]) {
             blacks++;
             gs[i] = ans[i] = null;
         }
     }
-    // Blancos
     for (let i = 0; i < 4; i++) {
         if (gs[i] != null && ans.includes(gs[i])) {
             whites++;
@@ -130,37 +128,35 @@ function gameFeedback(guessArr) {
 }
 
 /* ============================================
-   MOSTRAR RESULTADOS JUGADOR (negros/blancos)
+   PINTAR RESULTADOS JUGADOR
    ============================================ */
 function changeResultPins() {
     results.forEach((el, i) => {
-        let pin = $(`#ans${round} div:nth-child(${i + 1})`);
-        pin.css("background-color", el);
+        $(`#ans${round} div:nth-child(${i + 1})`)
+            .css("background-color", el);
     });
 }
 
-/* Asignar pins negros/blancos (modo jugador) */
+/* QUE SE VEAN PINS NEGROS Y BLANCOS */
 function getGuessResults() {
-    let ans = Array.from(answer);
-    let gs = Array.from(guess);
+    let ans = [...answer];
+    let gs = [...guess];
 
-    // Negros
-    gs.forEach((el, i) => {
-        if (el === ans[i]) {
+    gs.forEach((color, i) => {
+        if (color === ans[i]) {
             indexOfCorrect.push(i);
             results.push("black");
         }
     });
 
-    // Eliminar los negros
-    indexOfCorrect.reverse().forEach(el => {
-        ans.splice(el, 1);
-        gs.splice(el, 1);
+    indexOfCorrect.reverse().forEach(i => {
+        ans.splice(i, 1);
+        gs.splice(i, 1);
     });
 
-    // Blancos
     gs.sort();
     ans.sort();
+
     gs.forEach(el => {
         if (ans.includes(el)) {
             results.push("white");
@@ -169,51 +165,46 @@ function getGuessResults() {
     });
 
     changeResultPins();
-
     indexOfCorrect = [];
     results = [];
 }
 
 /* ============================================
-   CHECK DE VICTORIA DEL JUGADOR
+   VICTORIA DEL JUGADOR
    ============================================ */
 function checkWin() {
     const [blacks] = gameFeedback(guess);
 
     if (blacks === 4) {
-        feedback.text("¡Ganaste!");
-        answer.forEach((el, i) => changePinColor(i + 1, el, "#answer"));
+        feedback.text("¡Has ganado!");
+        answer.forEach((e, i) => changePinColor(i + 1, e, "#answer"));
         $("#answer .big_pin").text("");
         return true;
     }
 
     if (round === 10) {
-        feedback.text("F en el chat");
-        answer.forEach((el, i) => changePinColor(i + 1, el, "#answer"));
-        $("#answer .big_pin").text("");
+        feedback.text("Perdiste");
+        answer.forEach((e, i) => changePinColor(i + 1, e, "#answer"));
+        return true;
     }
 
     return false;
 }
 
 /* ============================================
-   PASAR JUGADA DEL JUGADOR AL TABLERO
+   APLICAR JUGADA JUGADOR AL TABLERO
    ============================================ */
 function changeRoundPins() {
-    guess.forEach((el, i) =>
-        changePinColor(i + 1, el, `#guess${round}`)
-    );
+    guess.forEach((c, i) => changePinColor(i + 1, c, `#guess${round}`));
 }
 
 function changeBackToBlack() {
-    for (let i = 1; i <= 4; i++) {
-        $(`#guess div:nth-child(${i})`)
-            .css("background-color", "rgb(207,187,165)");
-    }
+    for (let i = 1; i <= 4; i++)
+        $(`#guess div:nth-child(${i})`).css("background-color", "rgb(207,187,165)");
 }
 
 /* ============================================
-   BOTÓN PROBAR – turno del jugador
+   BOTÓN PROBAR
    ============================================ */
 function check() {
     if (guess.length !== 4) {
@@ -225,10 +216,7 @@ function check() {
     changeRoundPins();
     changeBackToBlack();
 
-    if (checkWin()) {
-        $("#check").off("click");
-        return;
-    }
+    if (checkWin()) return;
 
     round++;
     guess = [];
@@ -236,194 +224,253 @@ function check() {
 $("#check").click(check);
 
 /* ============================================
-   LIMPIAR TABLERO COMPLETO (pistas + jugadas)
+   RESET GENERAL
    ============================================ */
-function changeAllToBlack() {
-    for (let i = 1; i <= 10; i++) {
-        for (let x = 1; x <= 4; x++) {
-            $(`#guess${i} div:nth-child(${x})`)
-                .css("background-color", "rgb(207,187,165)");
-            $(`#ans${i} div:nth-child(${x})`)
-                .css("background-color", "rgb(162,160,160)");
-        }
-    }
+$("#reset").click(function () {
+    ai = new MastermindAI();
+    lastState = [0, 0];
 
-    for (let i = 1; i <= 4; i++) {
-        let pin = $(`#answer div:nth-child(${i})`);
-        pin.css("background-color", "rgb(207,187,165)");
-        pin.text("?");
-    }
-}
+    resetBoardForAI();
+    feedback.text("Reiniciado");
+    desbloquearJugador();
+});
 
 /* ============================================
-   RESET PARA UN EPISODIO DE IA (solo tablero)
+   RESET SOLO DEL TABLERO (episodio)
    ============================================ */
 function resetBoardForAI() {
     round = 1;
     guess = [];
     indexOfCorrect = [];
     results = [];
-    win = false;
-    selectedGuessPin = null;
-
     setAnswer();
     changeAllToBlack();
     changeBackToBlack();
-
     lastState = [0, 0];
 }
 
+/* BORRAR TODO EL TABLERO */
+function changeAllToBlack() {
+    for (let i = 1; i <= 10; i++) {
+        for (let j = 1; j <= 4; j++) {
+            $(`#guess${i} div:nth-child(${j})`)
+                .css("background-color", "rgb(207,187,165)");
+            $(`#ans${i} div:nth-child(${j})`)
+                .css("background-color", "rgb(162,160,160)");
+        }
+    }
+    for (let i = 1; i <= 4; i++) {
+        let p = $(`#answer div:nth-child(${i})`);
+        p.css("background-color", "rgb(207,187,165)");
+        p.text("?");
+    }
+}
+
 /* ============================================
-   BOTÓN RESET GENERAL
-   ============================================ */
-$("#reset").click(function () {
-    // Si quieres que el reset NO borre lo aprendido, comenta la siguiente línea:
-    ai = new MastermindAI();
-    lastState = [0, 0];
-
-    resetBoardForAI();
-    feedback.text("Juego Reiniciado");
-
-    desbloquearJugador();
-
-    $("#check").off("click");
-    $("#check").click(check);
-});
-
-/* ============================================
-   MOSTRAR JUGADA DE LA IA EN EL PANEL INFERIOR
+   MOSTRAR JUGADA IA ABAJO
    ============================================ */
 function mostrarJugadaIAEnPanel(action) {
     changeBackToBlack();
-    for (let i = 0; i < 4; i++) {
-        changePinColor(i + 1, action[i], "#guess");
-    }
+    action.forEach((c, i) => changePinColor(i + 1, c, "#guess"));
 }
 
-/* ============================================
-   PASAR JUGADA IA AL TABLERO (fila de turno)
-   ============================================ */
-function changeRoundPinsAI(action) {
-    for (let i = 0; i < 4; i++) {
-        changePinColor(i + 1, action[i], `#guess${round}`);
-    }
+/* JUGADA EN EL TABLERO */
+function changeRoundPinsAI(a) {
+    a.forEach((c, i) => changePinColor(i + 1, c, `#guess${round}`));
 }
 
-function changeResultPinsAI([blacks, whites]) {
+function changeResultPinsAI([b, w]) {
     let pos = 1;
-    for (let i = 0; i < blacks; i++) {
-        $(`#ans${round} div:nth-child(${pos})`).css("background-color", "black");
-        pos++;
-    }
-    for (let i = 0; i < whites; i++) {
-        $(`#ans${round} div:nth-child(${pos})`).css("background-color", "white");
-        pos++;
-    }
+    for (let i = 0; i < b; i++)
+        $(`#ans${round} div:nth-child(${pos++})`).css("background-color", "black");
+    for (let i = 0; i < w; i++)
+        $(`#ans${round} div:nth-child(${pos++})`).css("background-color", "white");
 }
 
 /* ============================================
-   REWARD PARA Q-LEARNING
+   REWARD
    ============================================ */
 function computeReward([blacks, whites]) {
     if (blacks === 4) return 20;
-    if (blacks === 0 && whites === 0) return -3; // penalizar jugadas sin info
-    return blacks * 3 + whites * 1 - 1;
+    if (blacks === 0 && whites === 0) return -3;
+    return blacks * 3 + whites - 1;
 }
 
 /* ============================================
-   UNA JUGADA DE LA IA (Q-Learning puro)
+   UNA JUGADA DE IA
    ============================================ */
 function aiTurn() {
-    let action = ai.chooseAction(lastState); // usa epsilon-greedy + memoria episodio
+    let action = ai.chooseAction(lastState);
     mostrarJugadaIAEnPanel(action);
 
     let fb = gameFeedback(action);
     let reward = computeReward(fb);
-    let nextState = fb;
 
-    ai.updateQ(lastState, action, reward, nextState);
+    updateIAConsole({
+        episode: aiEpisodes,
+        move: moves + 1,             // moves lo incrementas en playEpisode
+        action: action,
+        policy: ai.lastPolicy || "-",
+        fb: fb,
+        reward: reward,
+        epsilon: ai.epsilon
+    });
 
+    ai.updateQ(lastState, action, reward, fb);
     changeRoundPinsAI(action);
     changeResultPinsAI(fb);
 
-    lastState = nextState;
+    lastState = fb;
 
     if (fb[0] === 4) {
-        feedback.text("¡La IA ha ganado esta partida!");
-        answer.forEach((el, i) =>
-            changePinColor(i + 1, el, "#answer")
-        );
-        $("#answer .big_pin").text("");
-
-        ai.endEpisode();   // FIN DE EPISODIO (GANÓ)
-
+        answer.forEach((e, i) => changePinColor(i + 1, e, "#answer"));
+        ai.endEpisode();
         return true;
     }
 
     round++;
-    setTimeout(() => changeBackToBlack(), 300);
-
+    setTimeout(changeBackToBlack, 200);
     return false;
 }
 
 /* ============================================
-   ENTRENAMIENTO IA (muchos episodios seguidos)
+   ENTRENAMIENTO AUTOMÁTICO IA
    ============================================ */
 let aiRunning = false;
 let aiEpisodes = 0;
 
 $("#aiPlay").click(function () {
     if (aiRunning) return;
+    
+    bloquearJugador();
+    $("#menu").addClass("disabled_btn").css("pointer-events", "none");
     aiRunning = true;
     aiEpisodes = 0;
-
-    bloquearJugador();
     feedback.text("IA entrenando...");
-
-    let delayMove = 600;
-    let delayEpisode = 400;
 
     function playEpisode() {
         aiEpisodes++;
         resetBoardForAI();
-
-        let moves = 0;
-        let maxMoves = 10;
+        lastState = [0, 0];
+        moves = 0;
+        round = 1;
 
         function step() {
-            const finished = aiTurn();
+            const done = aiTurn();
             moves++;
 
-            if (finished) {
-                feedback.text("¡La IA ganó tras " + aiEpisodes + " partidas!");
-                aiRunning = false;
+            if (done) {
+                feedback.text("La IA descubrió el código tras " + aiEpisodes + " episodios");
                 desbloquearJugador();
+                aiRunning = false;
                 return;
             }
 
-            if (moves >= maxMoves) {
-                // Perdió esta partida → fin de episodio
+            if (moves >= 10) {
                 ai.endEpisode();
-                setTimeout(playEpisode, delayEpisode);
+                setTimeout(playEpisode, 700);
                 return;
             }
 
-            setTimeout(step, delayMove);
+            setTimeout(step, 700);
         }
-
         step();
     }
-
     playEpisode();
 });
 
+/* ============================================
+   PANEL DE INICIO – ELECCIÓN DE MODO
+   ============================================ */
+
+$("#btnModePlayer").click(function () {
+    $("#startPanel").hide();
+    feedback.text("Elige un patrón y presiona Probar");
+    desbloquearJugador();
+});
+
+$("#btnModeAI").click(function () {
+    $("#startPanel").hide();
+    bloquearJugador();         // humano bloqueado
+    $("#iaPlay").click();      // inicia modo IA automáticamente
+});
+
+/* ============================================
+   BOTÓN INSTRUCCIONES
+   ============================================ */
 $("#instructions").click(function () {
     swal({
-        content: "text",
         title: "Instrucciones",
-        text: "Este Proyecto implementa un algoritmo de Machine Learning que aprende a jugar al MasterMind. Las reglas son simples, adivinar una combinación secreta de 4 colores entre 6 posibles, en un máximo de 10 intentos. Cuando las pistas se iluminan de negro, significa que un color está en la posición correcta, y cuando se iluminan de blanco, significa que un color está en la posición incorrecta.",
+        text: "Este proyecto implementa un algoritmo de Aprendizaje por Refuerzo (Q-Learning) que aprende a jugar MasterMind.\n\nReglas del juego:\n- La combinación secreta tiene 4 colores.\n- Los colores posibles son 6.\n- Tienes hasta 10 intentos.\n\nPistas:\n- Pin negro: color correcto en la posición correcta.\n- Pin blanco: color correcto en la posición incorrecta.\n\nLa IA va probando jugadas, recibiendo recompensas según qué tan buena fue su jugada, y va actualizando sus valores Q para mejorar con el tiempo.",
+        icon: "info",
         buttons: {
-            confirm: { text: "Volver", className: "sweet-hover" }
+            confirm: { 
+                text: "Volver al juego", 
+                className: "sweet-hover" 
+            }
         }
     });
+});
+
+function updateIAConsole(data) {
+    $("#logEpisode").text(data.episode);
+    $("#logMove").text(data.move);
+    $("#logAction").text("[" + data.action.join(", ") + "]");
+    $("#logPolicy").text(data.policy);
+    $("#logFeedback").text(`${data.fb[0]} Black, ${data.fb[1]} White`);
+    $("#logReward").text(data.reward);
+    $("#logEpsilon").text(data.epsilon.toFixed(3));
+}
+
+function activarModoJugador() {
+    $("#menu").show();
+    $("#instructions").show();
+    $("#aiPlay").hide();
+    $("#iaStatus").hide();
+    $("#playerControls").show();
+    $("#playerActions").show();
+
+    $("#iaControls").hide();
+    $("#reset").show();
+    $("#check").show();
+    $("#clear").show();
+}
+
+function activarModoIA() {
+    $("#menu").show();
+    $("#instructions").show();
+    $("#aiPlay").show();
+    $("#reset").hide();
+    $("#check").hide();
+    $("#clear").hide();
+    $("#colorBoard").hide();
+    $("#playerActions").hide();
+
+    $("#iaStatus").show();
+    bloquearJugador(); // ya existe
+}
+
+$("#btnModePlayer").click(function () {
+    $("#startPanel").hide();
+    activarModoJugador();
+});
+
+$("#btnModeAI").click(function () {
+    $("#startPanel").hide();
+    activarModoIA();
+});
+
+function updateIAConsole(data) {
+    $("#logEpisode").text(data.episode);
+    $("#logMove").text(data.move);
+    $("#logAction").text(JSON.stringify(data.action));
+    $("#logPolicy").text(data.policy);
+    $("#logFeedback").text(`${data.fb[0]} Black, ${data.fb[1]} White`);
+    $("#logReward").text(data.reward);
+    $("#logEpsilon").text(data.epsilon.toFixed(3));
+}
+
+$("#menu").click(function () {
+    if (aiRunning) return; // evita volver al menú mientras IA entrena
+    location.reload(); // vuelve al panel de selección de modos
 });
