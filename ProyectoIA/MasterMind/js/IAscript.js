@@ -1,34 +1,23 @@
-/* ============================================================
-   IA DE MASTERMIND – Q-LEARNING
-   Mejoras ML:
-   ✔ Memoria por episodio (evitar repetir jugadas)
-   ✔ Epsilon decreciente
-   ✔ Penalización a jugadas sin información (desde script.js)
-   ✔ Logging detallado al panel .console
-   ============================================================ */
-
 class MastermindAI {
     constructor(alpha = 0.3, gamma = 0.9, epsilon = 0.5, epsilonDecay = 0.995, minEpsilon = 0.05) {
-        this.lastPolicy = "-"; // solo para mostrar en consola
-        this.alpha = alpha;               // tasa de aprendizaje
-        this.gamma = gamma;               // descuento futuro
-        this.epsilon = epsilon;           // probabilidad de explorar
-        this.epsilonDecay = epsilonDecay; // decrecimiento por episodio
+        this.lastPolicy = "-";
+        this.alpha = alpha;
+        this.gamma = gamma;
+        this.epsilon = epsilon;
+        this.epsilonDecay = epsilonDecay;
         this.minEpsilon = minEpsilon;
 
         this.colors = [0, 1, 2, 3, 4, 5];
 
-        // TODAS las combinaciones posibles (6^4 = 1296)
+        // All possible combinations (6^4 = 1296)
         this.actions = this.generateAllActions();
-        this.Q = {};  // Tabla Q
+        this.Q = {};  // Q-table
 
-        // Acciones ya usadas durante el episodio actual
+        // Actions already used during the current episode
         this.usedActions = new Set();
     }
 
-    /* -----------------------------------------
-       Generar todas las combinaciones posibles
-       ----------------------------------------- */
+    /* Choose all possible combinations */
     generateAllActions() {
         let acts = [];
         for (let a of this.colors)
@@ -39,16 +28,12 @@ class MastermindAI {
         return acts;
     }
 
-    /* -----------------------------------------
-       KEY referencia Q-table
-       ----------------------------------------- */
+    /* Key referencia Q-table */
     key(state, action) {
         return JSON.stringify({ state, action });
     }
 
-    /* -----------------------------------------
-       Obtener y guardar Q
-       ----------------------------------------- */
+    /* Get and set Q */
     getQ(state, action) {
         return this.Q[this.key(state, action)] ?? 0;
     }
@@ -57,11 +42,9 @@ class MastermindAI {
         this.Q[this.key(state, action)] = value;
     }
 
-    /* -----------------------------------------
-       Elegir acción con ε-greedy inteligente
-       ----------------------------------------- */
+    /* Choose action with intelligent ε-greedy */
     chooseAction(state) {
-    // Filtrar acciones no usadas en este episodio
+    // Filter actions not used in this episode
     let availableActions = this.actions.filter(a =>
         !this.usedActions.has(JSON.stringify(a))
     );
@@ -71,16 +54,16 @@ class MastermindAI {
         availableActions = this.actions.slice();
     }
 
-    // EXPLORACIÓN
+    // Exploration
     if (Math.random() < this.epsilon) {
         const idx = Math.floor(Math.random() * availableActions.length);
         const action = availableActions[idx];
         this.usedActions.add(JSON.stringify(action));
-        this.lastPolicy = "Exploración";
+        this.lastPolicy = "Exploration";
         return action;
     }
 
-    // EXPLOTACIÓN
+    // Exploitation
     let bestQ = -Infinity;
     let bestAction = availableActions[0];
 
@@ -93,13 +76,11 @@ class MastermindAI {
     }
 
     this.usedActions.add(JSON.stringify(bestAction));
-    this.lastPolicy = "Explotación";
+    this.lastPolicy = "Exploitation";
     return bestAction;
 }
 
-    /* -----------------------------------------
-       Actualizar tabla Q
-       ----------------------------------------- */
+    /* Update Q-table */
     updateQ(state, action, reward, nextState) {
 
         const oldQ = this.getQ(state, action);
@@ -122,17 +103,15 @@ class MastermindAI {
         );
     }
 
-    /* -----------------------------------------
-       Cierre de episodio
-       ----------------------------------------- */
+    /* End of episode */
     endEpisode() {
-        // Bajar epsilon --- cada vez explora menos
+        // Decrease epsilon --- explores less each time
         this.epsilon = Math.max(this.minEpsilon, this.epsilon * this.epsilonDecay);
 
-        // limpiar memoria de jugadas del episodio
+        // Clear memory of moves in the episode
         this.usedActions.clear();
 
-        logToConsole(`--- Fin del episodio | nuevo ε=${this.epsilon.toFixed(3)} ---`);
+        logToConsole(`--- End of episode | new ε=${this.epsilon.toFixed(3)} ---`);
     }
 }
 
@@ -143,16 +122,16 @@ AI.prototype.chooseActionVerbose = function(state) {
 
     let policy = "";
 
-    // Exploración
+    // Exploration
     if (Math.random() < this.epsilon) {
         let idx = Math.floor(Math.random() * availableActions.length);
         let action = availableActions[idx];
-        policy = "Exploración";
+        policy = "Exploration";
         this.usedActions.add(JSON.stringify(action));
         return { action, policy };
     }
 
-    // Explotación
+    // Exploitation
     let bestQ = -Infinity;
     let bestAction = availableActions[0];
 
@@ -164,7 +143,7 @@ AI.prototype.chooseActionVerbose = function(state) {
         }
     }
 
-    policy = "Explotación";
+    policy = "Exploitation";
     this.usedActions.add(JSON.stringify(bestAction));
     return { action: bestAction, policy };
 };
